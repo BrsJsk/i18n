@@ -1,6 +1,7 @@
 const path = require('path')
 const walk = require('walk-sync')
-const { nodeVersions } = require('../package.json')
+const { chain } = require('lodash')
+const { nodeVersions } = require('./package.json')
 const nodeMajors = Object.keys(nodeVersions)
 const contentDir = path.join(__dirname, 'content')
 const allPages = walk(contentDir, { directories: false })
@@ -16,12 +17,8 @@ const allPages = walk(contentDir, { directories: false })
     return { locale, nodeVersion, filePath, fullPath }
   })
 
-module.exports = {
-  allPages,
-  getPages
-}
 
-async function getPages (nodeMajor, locale) {
+async function getPages(nodeMajor, locale) {
   // set defaults
   nodeMajor = nodeMajor || nodeMajors[0] // latest
   locale = locale || 'en-US'
@@ -29,4 +26,18 @@ async function getPages (nodeMajor, locale) {
   return allPages
     .filter(page => page.nodeVersion === nodeMajor)
     .filter(page => page.locale === locale)
+}
+
+const locales = chain(allPages)
+  .map('locale')
+  .uniq()
+  .compact()
+  .sort()
+  .value()
+
+module.exports = {
+  allPages,
+  getPages,
+  locales,
+  nodeVersions
 }
